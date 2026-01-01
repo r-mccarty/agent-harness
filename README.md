@@ -1,22 +1,21 @@
 # Agent Harness (N100 + Coder)
 
-This repo captures the N100 node access/workspace configuration and documents the
-Coder template used for OpticWorks development. It is intended to be the single
-source of truth for agent harness updates (Coder template, MCP servers, skills,
-workspace baselines).
+Purpose-built home for the OpticWorks agent harness. This repo consolidates
+N100 access, Coder workspace configuration, and the operational workflow for the
+`opticworks-dev` template so it can evolve alongside agent features (MCP servers,
+skills, and workspace baselines).
 
-## Contents
+## What Lives Here
 
-- `AGENTS.md`: current Coder workspace snapshot for the N100 node.
-- `docs/n100-coder-access.md`: N100 and Coder access guide.
-- `docs/coder-workspace.md`: workspace specifics for the RS-1 Coder environment.
-- `mcp/`: MCP server configs and docs (placeholders for now).
-- `skills/`: agent skills and references (placeholders for now).
+- `AGENTS.md`: live workspace snapshot for the active Coder node.
+- `docs/n100-coder-access.md`: access guide for N100 and Coder.
+- `docs/coder-workspace.md`: workspace baseline and how to refresh it.
+- `mcp/`: MCP server configs and docs.
+- `skills/`: agent skills and references.
 
-## Updating the Coder Template
+## Template Updates (N100)
 
-The `opticworks-dev` template currently lives on the N100 node (not in this repo).
-To update it:
+The `opticworks-dev` template lives on the N100 node:
 
 ```bash
 ssh n100
@@ -25,10 +24,11 @@ cd /home/claude-temp/coder-templates/opticworks-dev/
 coder templates push opticworks-dev --yes
 ```
 
-After updating the template, update documentation in this repo to reflect changes.
+After pushing, update `AGENTS.md` and `docs/coder-workspace.md` to reflect any
+workspace changes.
 
-## Adding MCP Servers or Skills
+## Contributing
 
-- Put MCP configs/docs under `mcp/`.
-- Put skill docs/assets under `skills/`.
-- Keep changes documented in `AGENTS.md` if they affect the workspace footprint.
+- Keep secrets out of this repo; document them instead.
+- Prefer short, purpose-built docs over generic system writeups.
+- Update `AGENTS.md` whenever the workspace environment changes.
