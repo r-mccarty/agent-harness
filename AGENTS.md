@@ -1,245 +1,257 @@
-# Coder Workspace: optic-rs1-dev1
+# Agent Harness
 
-Agent configuration and HIL testing environment for RS-1 development.
+This repo bootstraps Coder workspaces with the context agents need to be productive
+immediately: tooling, secrets, repo access, and common workflows.
 
-## Instance Overview
+**Location in workspace:** `~/agent-harness` (symlinked to `~/AGENTS.md`)
 
-| Property | Value |
-|----------|-------|
-| **Hostname** | `optic-rs1-dev1` |
-| **URL** | `coder.hardwareos.com` |
-| **Host** | Intel N100 Mini PC (4 cores, 16GB RAM) |
-| **OS** | Ubuntu 24.04.3 LTS (noble) |
-| **Kernel** | 6.14.0-35-generic |
-| **Purpose** | RS-1 HIL testing with Luckfox Pico Max |
+---
 
-## Pre-configured Access
+## Quick Orientation
 
-| Service | Status | Details |
-|---------|--------|---------|
-| **GitHub CLI** | Authenticated | Account: `r-mccarty` (missing `read:org` scope) |
-| **Infisical Secrets** | Pre-loaded | `~/.env.secrets` present at startup |
-| **Docker** | Installed | CLI available; daemon not running (`/var/run/docker.sock` missing) |
+### What You Have Access To
+
+| Category | What's Available |
+|----------|------------------|
+| **AI CLIs** | `claude`, `codex`, `gemini`, `opencode` (pre-authenticated) |
+| **Secrets** | `~/.env.secrets` (auto-loaded from Infisical) |
+| **GitHub** | `gh` CLI authenticated, git push works |
+| **N100 Host** | `ssh n100` (SSH key pre-configured) |
+| **Hardware** | USB passthrough, serial ports, Luckfox access |
+
+### Check Your Environment
+
+```bash
+# Verify authentication status
+gh auth status                    # GitHub
+claude --version                  # Claude Code (runs if authenticated)
+cat ~/.env.secrets | wc -l        # Count loaded secrets
+ssh n100 "hostname"               # Test N100 access
+```
+
+---
+
+## Secrets (Infisical)
+
+Secrets are injected at workspace startup from Infisical and written to `~/.env.secrets`.
+
+```bash
+# View all secrets
+cat ~/.env.secrets
+
+# Secrets are auto-sourced in bash. Access directly:
+echo $GITHUB_TOKEN
+echo $ANTHROPIC_API_KEY
+```
+
+**Available secrets** (varies by Infisical project):
+
+| Secret | Purpose |
+|--------|---------|
+| `GITHUB_TOKEN` | GitHub API and git push |
+| `ANTHROPIC_API_KEY` | Anthropic API access |
+| `OPENAI_API_KEY` | OpenAI API access |
+| `CLAUDE_CREDENTIALS_JSON` | Claude Code OAuth (auto-configured) |
+| `CODEX_AUTH_JSON` | Codex CLI auth (auto-configured) |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API |
+| `N100_SSH_KEY` | SSH to N100 (auto-configured) |
+
+---
+
+## Repositories
+
+Clone repos to `~/workspace/` for organization. GitHub is pre-authenticated.
+
+### OpticWorks Repos
+
+| Repo | Purpose | Clone |
+|------|---------|-------|
+| **hardwareOS** | Embedded Linux platform (Go + React) | `gh repo clone r-mccarty/hardwareOS` |
+| **presence-detection-engine** | ESP32 + LD2410 presence sensor | `gh repo clone r-mccarty/presence-dectection-engine` |
+| **opticworks-intranet** | Internal site (Astro) | `gh repo clone r-mccarty/opticworks-intranet` |
+| **opticworks-store** | E-commerce (Next.js + Medusa) | `gh repo clone r-mccarty/opticworks-store` |
+| **agent-harness** | This repo - workspace bootstrap | Already at `~/agent-harness` |
+
+### Repo Quick Commands
+
+```bash
+# hardwareOS (Go + React)
+cd ~/workspace/hardwareOS
+go test ./...
+cd ui && npm run dev
+
+# presence-detection-engine (ESPHome + Python)
+cd ~/workspace/presence-detection-engine
+cd esphome && platformio test -e native
+yamllint esphome/ homeassistant/
+
+# opticworks-intranet (Astro)
+cd ~/workspace/opticworks-intranet
+npm run dev
+
+# opticworks-store (Next.js + Medusa)
+cd ~/workspace/opticworks-store
+pnpm dev:frontend
+```
+
+---
+
+## N100 Host Access
+
+The N100 is the physical host running Coder. SSH is pre-configured.
+
+```bash
+# Connect to N100
+ssh n100
+
+# Run command on N100
+ssh n100 "docker ps"
+ssh n100 "ls /home/claude-temp/coder-templates/"
+```
+
+### What's on the N100
+
+| Service | Purpose |
+|---------|---------|
+| Coder | Workspace orchestration (port 7080) |
+| Home Assistant | Smart home automation |
+| Cloudflared | Tunnel to internet |
+| Docker | Container runtime |
+
+### Hardware Connected to N100
+
+| Device | Access |
+|--------|--------|
+| **Luckfox Pico Max** | `ssh root@172.32.0.93` or `adb shell` |
+| **USB devices** | `lsusb` (passthrough enabled) |
+| **Serial ports** | `picocom -b 115200 /dev/ttyUSB0` |
+
+---
+
+## Common Workflows
+
+### 1. Work on a Repo
+
+```bash
+# Clone and enter
+gh repo clone r-mccarty/hardwareOS ~/workspace/hardwareOS
+cd ~/workspace/hardwareOS
+
+# Create branch
+git checkout -b feature/my-feature
+
+# Work, commit, push
+git add . && git commit -m "feat: description"
+git push -u origin feature/my-feature
+
+# Create PR
+gh pr create --fill
+```
+
+### 2. Deploy to Luckfox
+
+```bash
+# From presence-detection-engine
+ssh n100   # Connect to N100 first (has USB access)
+adb push build/firmware.bin /tmp/
+adb shell "flash_tool /tmp/firmware.bin"
+```
+
+### 3. Run Tests Across Repos
+
+```bash
+# ESPHome unit tests
+cd ~/workspace/presence-detection-engine/esphome
+platformio test -e native
+
+# Go tests
+cd ~/workspace/hardwareOS
+go test ./...
+
+# Frontend tests
+cd ~/workspace/opticworks-intranet
+npm test
+```
+
+### 4. Access Home Assistant
+
+```bash
+# HA is on the N100, accessible via tunnel
+curl -H "Authorization: Bearer $HA_TOKEN" \
+  https://ha.hardwareos.com/api/states
+```
+
+---
 
 ## Installed Tools
 
 | Tool | Version | Purpose |
 |------|---------|---------|
-| Go | 1.23.4 | Backend builds |
-| Node.js | 22.21.0 | UI builds |
-| Playwright | 1.57.0 | E2E testing & visual screenshots |
-| adb | 1.0.41 | Luckfox access |
-| rkdeveloptool | 1.0.0 | Rockchip flashing |
+| Go | 1.23.4 | Backend development |
+| Node.js | 22.x | Frontend/tooling |
+| Python | 3.x | Scripts and tools |
+| Rust | latest | Systems programming |
+| adb | 1.0.41 | Android/Luckfox access |
 | picocom | 3.1 | Serial console |
-
-## Repositories
-
-Local clones of OpticWorks repositories are available in this workspace.
-
-| Repo | Path | Branch | Remote |
-|------|------|--------|--------|
-| hardwareOS | `/home/coder/workspace/hardwareOS` | `dev` | `https://github.com/r-mccarty/hardwareOS.git` |
-| presence-detection-engine | `/home/coder/workspace/presence-detection-engine` | `main` | `https://github.com/r-mccarty/presence-dectection-engine.git` |
-| opticworks-intranet | `/home/coder/workspace/opticworks-intranet` | `main` | `https://github.com/r-mccarty/opticworks-intranet.git` |
-| opticworks-store | `/home/coder/workspace/opticworks-store` | `main` | `https://github.com/r-mccarty/opticworks-store.git` |
+| gh | latest | GitHub CLI |
+| jq | latest | JSON processing |
 
 ---
-
-## Luckfox Pico Max (Dev Board)
-
-The Luckfox Pico Max (RV1106G3) is used for HIL testing.
-
-Current device status:
-- No Rockchip device detected on USB (`lsusb` shows no Rockchip IDs).
-- No USB RNDIS interface present (no `enx*` interface).
-
-### Network Interfaces
-
-| Interface | Purpose | IP Address |
-|-----------|---------|------------|
-| `wlo1` | Wi‑Fi | 192.168.0.148/24 |
-| `enp1s0` | Ethernet | down |
-| `docker0` | Docker bridge | 172.17.0.1/16 |
-
-Expected when Luckfox is connected:
-| Interface | Purpose | IP Address |
-|-----------|---------|------------|
-| `enx5aef472011ac` | USB RNDIS to Luckfox | 172.32.0.1/24 (host) |
-| `enp1s0` | Ethernet to Luckfox | 192.168.1.1/24 (host) |
-
-### Access Methods
-
-| Method | Command | When to Use |
-|--------|---------|-------------|
-| **ADB** | `sudo adb shell` | Default (USB device mode) |
-| **SSH RNDIS** | `ssh root@172.32.0.93` | After RNDIS IP setup |
-| **SSH Ethernet** | `ssh root@192.168.1.100` | USB host mode |
-
-### Quick Setup
-
-```bash
-# 1. Set up ADB
-adb kill-server && sudo adb start-server
-sudo adb devices
-
-# 2. Set up RNDIS networking
-sudo ip addr add 172.32.0.1/24 dev enx5aef472011ac
-ping 172.32.0.93
-
-# 3. Access Luckfox
-sudo adb shell
-# or
-ssh root@172.32.0.93  # password: luckfox
-```
-
----
-
-## HIL Testing Setup
-
-### Current Status
-
-```
-┌──────────────────┐                    ┌─────────────────────┐
-│      N100        │                    │  Luckfox Pico Max   │
-│  (this machine)  │    Not detected    │     (RV1106G3)      │
-└──────────────────┘                    └─────────────────────┘
-```
-
-### For USB Camera Testing
-
-When USB camera arrives, switch Luckfox to USB host mode:
-
-```
-┌──────────────┐    Ethernet       ┌─────────────────────────────┐
-│    N100      ├───────────────────┤      Luckfox Pico Max       │
-│ 192.168.1.1  │                   │      192.168.1.100          │
-└──────────────┘                   │                             │
-                                   │  USB-C ──► OTG ──► USB Cam  │
-┌──────────────┐   Pin 39 + 38     │                             │
-│  5V Power    ├───────────────────┤  GPIO Header (Power In)     │
-└──────────────┘                   └─────────────────────────────┘
-```
-
-**Required parts:**
-- USB-C to USB-A OTG adapter
-- 5V 2A power supply
-- Dupont jumper wires
-- Ethernet cable
-
-See `hardwareOS/docs/rs1/CAMERA_HIL_INTEGRATION.md` for full setup.
-
----
-
-## Common Commands
-
-```bash
-# Luckfox access
-sudo adb shell
-ssh root@172.32.0.93
-
-# Check USB devices
-lsusb | grep Rockchip
-sudo adb devices
-
-# Serial console (if needed)
-picocom -b 115200 /dev/ttyUSB0
-
-# View secrets
-cat ~/.env.secrets
-
-# Git operations
-gh repo list
-gh pr list
-```
 
 ## Troubleshooting
 
-### ADB Permission Denied
+### Secrets Not Loading
+
 ```bash
-adb kill-server
-sudo adb start-server
+# Re-source secrets
+source ~/.env.secrets
+
+# Check if file exists
+cat ~/.env.secrets
 ```
 
-### RNDIS Interface Missing
+### GitHub Push Fails
+
 ```bash
-sudo modprobe -r rndis_host && sudo modprobe rndis_host
-ip link show | grep enx
+# Check auth status
+gh auth status
+
+# Re-authenticate if needed
+echo $GITHUB_TOKEN | gh auth login --with-token
 ```
 
-### Cannot Ping Luckfox
+### Can't SSH to N100
+
 ```bash
-# Check interface has IP
-ip addr show enx5aef472011ac
-# Add if missing
-sudo ip addr add 172.32.0.1/24 dev enx5aef472011ac
+# Check if key exists
+ls -la ~/.ssh/n100
+
+# Test connection
+ssh -v n100
+```
+
+### Claude/Codex Not Authenticated
+
+```bash
+# Check credential files
+ls -la ~/.claude/.credentials.json
+ls -la ~/.codex/auth.json
+
+# Credentials come from Infisical - check secrets
+grep -E "CLAUDE|CODEX" ~/.env.secrets
 ```
 
 ---
 
-## Documentation
+## Extending the Harness
 
-| Doc | Location |
-|-----|----------|
-| Coder workspace | `hardwareOS/docs/platform/CODER_WORKSPACE.md` |
-| HIL testing | `hardwareOS/docs/rs1/CAMERA_HIL_INTEGRATION.md` |
-| Luckfox setup | `presence-detection-engine/docs/luckfox-pico-max-setup.md` |
-| Intranet guide | `opticworks-intranet/CLAUDE.md` |
+This repo is the source of truth for workspace configuration.
 
----
+| Path | Purpose |
+|------|---------|
+| `templates/opticworks-dev/` | Coder template (Terraform + Dockerfile) |
+| `mcp/` | MCP server configurations |
+| `skills/` | Agent skill definitions |
+| `docs/` | Extended documentation |
 
-## Playwright Visual Testing
-
-Playwright can be used to capture screenshots for design comparison and validation.
-
-### Quick Start
-```bash
-cd /home/coder/workspace/opticworks-intranet
-
-# Install browser (first time)
-npx playwright install chromium
-
-# Capture design reference screenshots
-npx playwright test capture-design-reference --project=chromium
-
-# View screenshots
-ls screenshots/
-```
-
-### Use Cases
-- **Design comparison**: Capture optic.works and intranet side-by-side
-- **Contrast validation**: Verify text readability in light/dark modes
-- **Before/after changes**: Document visual regressions
-- **Cross-browser testing**: Compare rendering across browsers
-
-Screenshots are saved to `opticworks-intranet/screenshots/`.
-
----
-
-## Repo Quick Commands
-
-### hardwareOS (Go + React)
-```bash
-./dev_deploy.sh -r <DEVICE_IP>
-go test ./...
-cd ui && npm run dev
-```
-
-### presence-detection-engine (ESPHome + Python)
-```bash
-cd esphome && esphome compile bed-presence-detector.yaml
-cd esphome && platformio test -e native
-yamllint esphome/ homeassistant/
-```
-
-### opticworks-intranet (Astro)
-```bash
-npm run dev
-npm run build
-npm run test
-```
-
-### opticworks-store (Next.js + Medusa)
-```bash
-pnpm dev:frontend
-pnpm build:frontend
-```
+To update the workspace template, see `docs/n100-coder-access.md`.
