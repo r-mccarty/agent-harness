@@ -60,6 +60,10 @@ echo $ANTHROPIC_API_KEY
 | `CODEX_AUTH_JSON` | Codex CLI auth (auto-configured) |
 | `CLOUDFLARE_API_TOKEN` | Cloudflare API |
 | `N100_SSH_KEY` | SSH to N100 (auto-configured) |
+| `X_API_KEY` | X (Twitter) API key |
+| `X_API_SECRET` | X API secret |
+| `X_ACCESS_TOKEN` | X access token |
+| `X_ACCESS_SECRET` | X access token secret |
 
 ---
 
@@ -75,6 +79,7 @@ Clone repos to `~/workspace/` for organization. GitHub is pre-authenticated.
 | **presence-detection-engine** | ESP32 + LD2410 presence sensor | `gh repo clone r-mccarty/presence-dectection-engine` |
 | **opticworks-intranet** | Internal site (Astro) | `gh repo clone r-mccarty/opticworks-intranet` |
 | **opticworks-store** | E-commerce (Next.js + Medusa) | `gh repo clone r-mccarty/opticworks-store` |
+| **n8n-marketing-automation** | N8N workflows for X/social media | `gh repo clone r-mccarty/n8n-marketing-automation` |
 | **agent-harness** | This repo - workspace bootstrap | Already at `~/agent-harness` |
 
 ### Repo Quick Commands
@@ -120,6 +125,7 @@ ssh n100 "ls /home/claude-temp/coder-templates/"
 |---------|---------|
 | Coder | Workspace orchestration (port 7080) |
 | Home Assistant | Smart home automation |
+| N8N | Marketing automation (port 5678) - https://n8n.optic.works |
 | Cloudflared | Tunnel to internet |
 | Docker | Container runtime |
 
