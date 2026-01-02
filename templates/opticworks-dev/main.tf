@@ -205,11 +205,17 @@ SSHEOF
       echo "Context files: ~/AGENTS.md, ~/CLAUDE.md, ~/workspace/AGENTS.md, ~/workspace/CLAUDE.md"
     fi
 
+    # Install VS Code extensions
+    echo "Installing VS Code extensions..."
+    code-server --install-extension Anthropic.claude-code 2>/dev/null || \
+      echo "Warning: Claude Code extension installation failed"
+
     # Start code-server in background
     code-server --bind-addr 0.0.0.0:8080 --auth none ~/workspace > /tmp/code-server.log 2>&1 &
 
     echo "Workspace ready!"
     echo "AI CLI tools: claude, gemini, codex, opencode"
+    echo "VS Code: Claude Code extension installed"
     echo "Agent context: AGENTS.md and CLAUDE.md in ~ and ~/workspace"
   EOT
 
