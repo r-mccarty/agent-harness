@@ -248,6 +248,19 @@ source ~/.env.secrets
 cat ~/.env.secrets
 ```
 
+---
+
+## Intranet Sync
+
+The intranet mirrors this repo's docs. After updating `AGENTS.md` or anything in `docs/`, run the sync script from the intranet repo:
+
+```bash
+cd ~/workspace/opticworks-intranet
+./scripts/sync-agent-harness.sh
+```
+
+See `docs/intranet-sync.md` for details.
+
 ### GitHub Push Fails
 
 ```bash
