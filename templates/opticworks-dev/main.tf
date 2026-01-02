@@ -190,10 +190,19 @@ SSHEOF
       cd ~/agent-harness && git pull --ff-only 2>/dev/null || true
     fi
 
-    # Symlink AGENTS.md to home for easy agent discovery
+    # Create symlinks for agent discovery in key locations
     if [ -f ~/agent-harness/AGENTS.md ]; then
+      # Symlink to home directory
       ln -sf ~/agent-harness/AGENTS.md ~/AGENTS.md
+      ln -sf ~/agent-harness/AGENTS.md ~/CLAUDE.md
+
+      # Symlink to workspace directory (where agents typically start)
+      mkdir -p ~/workspace
+      ln -sf ~/agent-harness/AGENTS.md ~/workspace/AGENTS.md
+      ln -sf ~/agent-harness/AGENTS.md ~/workspace/CLAUDE.md
+
       echo "Agent harness ready: ~/agent-harness"
+      echo "Context files: ~/AGENTS.md, ~/CLAUDE.md, ~/workspace/AGENTS.md, ~/workspace/CLAUDE.md"
     fi
 
     # Start code-server in background
@@ -201,7 +210,7 @@ SSHEOF
 
     echo "Workspace ready!"
     echo "AI CLI tools: claude, gemini, codex, opencode"
-    echo "Agent harness: ~/agent-harness (AGENTS.md symlinked to ~)"
+    echo "Agent context: AGENTS.md and CLAUDE.md in ~ and ~/workspace"
   EOT
 
   metadata {
