@@ -19,6 +19,11 @@ immediately: tooling, secrets, repo access, and common workflows.
 | **N100 Host** | `ssh n100` (SSH key pre-configured) |
 | **Hardware** | USB passthrough, serial ports, Luckfox access |
 
+### Git Identity (OpticWorks)
+
+- Name: r-mccarty
+- Email: ry.mccarty13@gmail.com
+
 ### Check Your Environment
 
 ```bash
