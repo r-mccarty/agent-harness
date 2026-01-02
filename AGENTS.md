@@ -102,6 +102,12 @@ npm run dev
 # opticworks-store (Next.js + Medusa)
 cd ~/workspace/opticworks-store
 pnpm dev:frontend
+
+# n8n-marketing-automation (Docker + Python)
+cd ~/workspace/n8n-marketing-automation
+# Deploy to N100: see SETUP.md
+ssh n100 "sudo systemctl status tweet-api"  # Check Tweet API
+ssh n100 "docker compose -f /opt/n8n/docker-compose.yml logs -f"  # N8N logs
 ```
 
 ---
@@ -126,6 +132,7 @@ ssh n100 "ls /home/claude-temp/coder-templates/"
 | Coder | Workspace orchestration (port 7080) |
 | Home Assistant | Smart home automation |
 | N8N | Marketing automation (port 5678) - https://n8n.optic.works |
+| Tweet API | X OAuth shim for N8N (port 5680, localhost only) |
 | Cloudflared | Tunnel to internet |
 | Docker | Container runtime |
 
@@ -190,6 +197,26 @@ npm test
 # HA is on the N100, accessible via tunnel
 curl -H "Authorization: Bearer $HA_TOKEN" \
   https://ha.hardwareos.com/api/states
+```
+
+### 5. Work with N8N / Tweet API
+
+```bash
+# Access N8N dashboard
+open https://n8n.optic.works
+
+# Test Tweet API shim (on N100)
+ssh n100 'curl -X POST http://127.0.0.1:5680 \
+  -H "Content-Type: application/json" \
+  -d "{\"text\": \"Test tweet\"}"'
+
+# Check/restart services
+ssh n100 "sudo systemctl status tweet-api"
+ssh n100 "sudo systemctl restart tweet-api"
+ssh n100 "docker compose -f /opt/n8n/docker-compose.yml restart"
+
+# View logs
+ssh n100 "sudo journalctl -u tweet-api -f"
 ```
 
 ---
