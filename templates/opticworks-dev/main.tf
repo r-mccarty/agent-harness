@@ -210,8 +210,9 @@ SSHEOF
     code-server --install-extension Anthropic.claude-code 2>/dev/null || \
       echo "Warning: Claude Code extension installation failed"
 
-    # Start code-server in background
-    code-server --bind-addr 0.0.0.0:8080 --auth none ~/workspace > /tmp/code-server.log 2>&1 &
+    # Start code-server in background (binds to localhost, Coder agent proxies it)
+    # IMPORTANT: Binding to 127.0.0.1 ensures each container's code-server is isolated
+    code-server --bind-addr 127.0.0.1:8080 --auth none ~/workspace > /tmp/code-server.log 2>&1 &
 
     echo "Workspace ready!"
     echo "AI CLI tools: claude, gemini, codex, opencode"
@@ -325,8 +326,26 @@ resource "docker_container" "workspace" {
   image    = docker_image.workspace.image_id
   hostname = data.coder_workspace.me.name
 
-  privileged   = true
-  network_mode = "host"
+  # Keep privileged for USB/device access
+  privileged = true
+
+  # IMPORTANT: Do NOT use network_mode = "host"
+  # Host networking causes all containers to share the same network namespace,
+  # leading to port conflicts (e.g., code-server on :8080) and broken isolation.
+  # Default bridge networking gives each container its own localhost.
+  # See: AGENTS.md -> Anti-Patterns -> Host Networking
+
+  # Add routes to reach hardware on the LAN
+  host {
+    host = "luckfox"
+    ip   = "172.32.0.93"
+  }
+
+  # N100 host access via Docker's default gateway
+  host {
+    host = "n100-host"
+    ip   = "172.17.0.1"
+  }
 
   user = "coder"
 

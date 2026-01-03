@@ -236,6 +236,69 @@ ssh n100 "sudo journalctl -u tweet-api -f"
 
 ---
 
+## Anti-Patterns
+
+> **Warning**: These patterns can cause hard-to-debug issues. Avoid them.
+
+### Host Networking (`network_mode = "host"`)
+
+**Never use `network_mode = "host"` in Coder workspace templates.**
+
+```hcl
+# BAD - causes workspace isolation to break
+resource "docker_container" "workspace" {
+  network_mode = "host"  # DON'T DO THIS
+}
+```
+
+**Why it's bad:**
+
+1. **Port conflicts**: All containers share the host network. If workspace-1 binds
+   code-server to `:8080`, workspace-2's code-server fails with `EADDRINUSE`.
+
+2. **Broken isolation**: Containers can see each other's network traffic and services.
+   Opening a terminal in workspace-2 might actually connect you to workspace-1.
+
+3. **Wrong hostname in prompts**: The shell prompt `coder@dev-workspace-1` might
+   appear in workspace-2 because you're accidentally connected to the wrong container.
+
+**Correct approach:**
+
+```hcl
+resource "docker_container" "workspace" {
+  # Use default bridge networking (no network_mode specified)
+  # Each container gets its own network namespace and localhost
+
+  # For hardware access, add host entries instead:
+  host {
+    host = "luckfox"
+    ip   = "172.32.0.93"
+  }
+
+  host {
+    host = "n100-host"
+    ip   = "172.17.0.1"  # Docker default gateway
+  }
+}
+```
+
+**Also bind services to localhost:**
+
+```bash
+# BAD - binds to all interfaces, conflicts with other containers on host network
+code-server --bind-addr 0.0.0.0:8080
+
+# GOOD - binds to container's localhost, Coder agent proxies it
+code-server --bind-addr 127.0.0.1:8080
+```
+
+### Hardcoded Ports Without Isolation
+
+If you must use specific ports, ensure network isolation first (see above).
+Alternatively, use dynamic port allocation or let Coder proxy through the agent.
+
+---
+
 ## Troubleshooting
 
 ### Secrets Not Loading
