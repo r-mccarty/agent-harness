@@ -57,6 +57,7 @@ echo $ANTHROPIC_API_KEY
 | `ANTHROPIC_API_KEY` | Anthropic API access |
 | `OPENAI_API_KEY` | OpenAI API access |
 | `CLAUDE_CREDENTIALS_JSON` | Claude Code OAuth (auto-configured) |
+| `CLAUDE_SETTINGS_JSON` | Claude Code settings/onboarding (auto-configured) |
 | `CODEX_AUTH_JSON` | Codex CLI auth (auto-configured) |
 | `CLOUDFLARE_API_TOKEN` | Cloudflare API |
 | `N100_SSH_KEY` | SSH to N100 (auto-configured) |

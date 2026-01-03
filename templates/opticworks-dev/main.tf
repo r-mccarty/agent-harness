@@ -149,6 +149,21 @@ resource "coder_agent" "main" {
       echo "No CLAUDE_CREDENTIALS_JSON found, skipping Claude Code configuration"
     fi
 
+    # Configure Claude Code settings if CLAUDE_SETTINGS_JSON is available
+    if [ -n "$CLAUDE_SETTINGS_JSON" ]; then
+      echo "Configuring Claude Code settings..."
+      mkdir -p ~/.config/claude-code
+      if command -v jq >/dev/null 2>&1; then
+        echo "$CLAUDE_SETTINGS_JSON" | jq '.' > ~/.config/claude-code/settings.json
+      else
+        printf '%s' "$CLAUDE_SETTINGS_JSON" > ~/.config/claude-code/settings.json
+      fi
+      chmod 600 ~/.config/claude-code/settings.json
+      echo "Claude Code settings configured"
+    else
+      echo "No CLAUDE_SETTINGS_JSON found, skipping Claude settings configuration"
+    fi
+
     # Configure Codex credentials if CODEX_AUTH_JSON is available
     if [ -n "$CODEX_AUTH_JSON" ]; then
       echo "Configuring Codex credentials..."

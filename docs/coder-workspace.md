@@ -27,7 +27,7 @@ template. For the agent-facing quick reference, see `AGENTS.md`.
 
 | Tool | Command | Auth Source |
 |------|---------|-------------|
-| Claude Code | `claude` | `CLAUDE_CREDENTIALS_JSON` |
+| Claude Code | `claude` | `CLAUDE_CREDENTIALS_JSON`, `CLAUDE_SETTINGS_JSON` |
 | OpenAI Codex | `codex` | `CODEX_AUTH_JSON` |
 | Gemini CLI | `gemini` | `GOOGLE_API_KEY` |
 | OpenCode | `opencode` | Various |
@@ -77,6 +77,9 @@ git config --global user.name/email (from GitHub profile)
 # If CLAUDE_CREDENTIALS_JSON exists:
 ~/.claude/.credentials.json         ← $CLAUDE_CREDENTIALS_JSON
 ~/.config/claude-code/auth.json     ← $CLAUDE_CREDENTIALS_JSON
+
+# If CLAUDE_SETTINGS_JSON exists:
+~/.config/claude-code/settings.json ← $CLAUDE_SETTINGS_JSON
 ```
 
 ### 4. Codex
