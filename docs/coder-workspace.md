@@ -75,7 +75,8 @@ git config --global user.name/email (from GitHub profile)
 
 ```bash
 # If CLAUDE_CREDENTIALS_JSON exists:
-~/.claude/.credentials.json ← $CLAUDE_CREDENTIALS_JSON
+~/.claude/.credentials.json         ← $CLAUDE_CREDENTIALS_JSON
+~/.config/claude-code/auth.json     ← $CLAUDE_CREDENTIALS_JSON
 ```
 
 ### 4. Codex

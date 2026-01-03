@@ -133,9 +133,17 @@ resource "coder_agent" "main" {
     # Configure Claude Code credentials if CLAUDE_CREDENTIALS_JSON is available
     if [ -n "$CLAUDE_CREDENTIALS_JSON" ]; then
       echo "Configuring Claude Code credentials..."
-      mkdir -p ~/.claude
-      echo "$CLAUDE_CREDENTIALS_JSON" > ~/.claude/.credentials.json
-      chmod 600 ~/.claude/.credentials.json
+      mkdir -p ~/.claude ~/.config/claude-code
+      claude_tmp=$(mktemp)
+      if command -v jq >/dev/null 2>&1; then
+        echo "$CLAUDE_CREDENTIALS_JSON" | jq '.' > "$claude_tmp"
+      else
+        printf '%s' "$CLAUDE_CREDENTIALS_JSON" > "$claude_tmp"
+      fi
+      cp "$claude_tmp" ~/.claude/.credentials.json
+      cp "$claude_tmp" ~/.config/claude-code/auth.json
+      rm -f "$claude_tmp"
+      chmod 600 ~/.claude/.credentials.json ~/.config/claude-code/auth.json
       echo "Claude Code credentials configured"
     else
       echo "No CLAUDE_CREDENTIALS_JSON found, skipping Claude Code configuration"
@@ -145,7 +153,11 @@ resource "coder_agent" "main" {
     if [ -n "$CODEX_AUTH_JSON" ]; then
       echo "Configuring Codex credentials..."
       mkdir -p ~/.codex
-      echo "$CODEX_AUTH_JSON" > ~/.codex/auth.json
+      if command -v jq >/dev/null 2>&1; then
+        echo "$CODEX_AUTH_JSON" | jq '.' > ~/.codex/auth.json
+      else
+        printf '%s' "$CODEX_AUTH_JSON" > ~/.codex/auth.json
+      fi
       chmod 600 ~/.codex/auth.json
       echo "Codex credentials configured"
     else
