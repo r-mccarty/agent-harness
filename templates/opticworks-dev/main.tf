@@ -70,7 +70,7 @@ resource "coder_agent" "main" {
       # Parse JSON and append to secrets file with proper shell escaping
       if echo "$response" | jq -e '.secrets' > /dev/null 2>&1; then
         # Use @sh to properly escape values for shell (handles multiline JSON, special chars)
-        echo "$response" | jq -r '.secrets[] | "\(.secretKey)=\(.secretValue | @sh)"' >> ~/.env.secrets
+        echo "$response" | jq -r '.secrets[] | "\(.secretKey)=\(.secretValue | tojson | @sh)"' >> ~/.env.secrets
         count=$(echo "$response" | jq '.secrets | length')
         echo "    Loaded $count secrets from $env"
       else
