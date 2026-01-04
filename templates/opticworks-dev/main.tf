@@ -67,10 +67,10 @@ resource "coder_agent" "main" {
       response=$(curl -s -H "Authorization: Bearer $INFISICAL_MI_TOKEN" \
         "https://app.infisical.com/api/v3/secrets/raw?workspaceId=$INFISICAL_PROJECT&environment=$env&secretPath=/")
 
-      # Parse JSON and append to secrets file with proper quoting
+      # Parse JSON and append to secrets file with proper shell escaping
       if echo "$response" | jq -e '.secrets' > /dev/null 2>&1; then
-        # Use jq to properly escape values and wrap in single quotes
-        echo "$response" | jq -r '.secrets[] | "\(.secretKey)='"'"'\(.secretValue)'"'"'"' >> ~/.env.secrets
+        # Use @sh to properly escape values for shell (handles multiline JSON, special chars)
+        echo "$response" | jq -r '.secrets[] | "\(.secretKey)=\(.secretValue | @sh)"' >> ~/.env.secrets
         count=$(echo "$response" | jq '.secrets | length')
         echo "    Loaded $count secrets from $env"
       else
