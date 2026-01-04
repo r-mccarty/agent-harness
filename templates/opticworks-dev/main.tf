@@ -164,6 +164,22 @@ resource "coder_agent" "main" {
       echo "No CLAUDE_SETTINGS_JSON found, skipping Claude settings configuration"
     fi
 
+
+    # Create Claude onboarding config to skip interactive setup
+    # This is the missing piece that prevents OAuth prompts in fresh workspaces
+    # See: https://github.com/anthropics/claude-code/issues/8938
+    if [ -n "$CLAUDE_CREDENTIALS_JSON" ]; then
+      echo "Creating Claude onboarding config..."
+      cat > ~/.claude.json <<'CLAUDEJSON'
+{
+  "hasCompletedOnboarding": true,
+  "installMethod": "native",
+  "autoUpdates": false
+}
+CLAUDEJSON
+      chmod 600 ~/.claude.json
+      echo "Claude onboarding config created"
+    fi
     # Configure Codex credentials if CODEX_AUTH_JSON is available
     if [ -n "$CODEX_AUTH_JSON" ]; then
       echo "Configuring Codex credentials..."
